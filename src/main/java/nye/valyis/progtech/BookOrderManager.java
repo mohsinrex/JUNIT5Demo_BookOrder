@@ -65,12 +65,13 @@ public class BookOrderManager {
         }
         double total = calculateOrderTotal(bookTitle, quantity);
 
+        boolean isFound = false;
         for (Book b : inventory) {
             if (b.getTitle().equals(bookTitle)) {
                 b.setStock(b.getStock() - quantity);
-                break;
+                isFound = true;
             }
         }
-        return true;
+        return isFound;
     }
 }

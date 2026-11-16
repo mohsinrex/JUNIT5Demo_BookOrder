@@ -7,184 +7,163 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class BookOrderManagerTest {
 
-    private BookOrderManager manager;
-    private Book testBook;
+    private BookOrderManager orderManager;
+    private Book sampleBook;
 
     @BeforeEach
-    void setUp() {
-        manager = new BookOrderManager();
-        // Standard test book used across most tests
-        testBook = new Book("Harry Potter", 20.0, 10);
-    }
-
-    // ==========================================
-    // Tests for addBookToInventory()
-    // ==========================================
-
-    @Test
-    void testAddBookToInventory_Success() {
-        manager.addBookToInventory(testBook);
-        // If no exception is thrown, the test passes
+    void setup() {
+        orderManager = new BookOrderManager();
+        sampleBook = new Book("Harry Potter", 20.0, 10);
     }
 
     @Test
-    void testAddBookToInventory_NullBook_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            manager.addBookToInventory(null);
+    void testAddBook_Success() {
+        orderManager.addBookToInventory(sampleBook);
+    }
+
+    @Test
+    void testAddBook_Null_ThrowsException() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            orderManager.addBookToInventory(null);
         });
-        assertEquals("Book cannot be null.", exception.getMessage());
-    }
-
-    // ==========================================
-    // Tests for setDiscountRate()
-    // ==========================================
-
-    @Test
-    void testSetDiscountRate_Success() {
-        manager.setDiscountRate(0.5);
-        // If no exception is thrown, the test passes
+        assertEquals("Book cannot be null.", ex.getMessage());
     }
 
     @Test
-    void testSetDiscountRate_BelowZero_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            manager.setDiscountRate(-0.1);
+    void testSetDiscount_Valid() {
+        orderManager.setDiscountRate(0.5);
+    }
+
+    @Test
+    void testSetDiscount_Negative_ThrowsException() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            orderManager.setDiscountRate(-0.1);
         });
-        assertEquals("Discount rate must be between 0.0 and 1.0.", exception.getMessage());
+        assertEquals("Discount rate must be between 0.0 and 1.0.", ex.getMessage());
     }
 
     @Test
-    void testSetDiscountRate_AboveOne_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            manager.setDiscountRate(1.1);
+    void testSetDiscount_OverOne_ThrowsException() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            orderManager.setDiscountRate(1.1);
         });
-        assertEquals("Discount rate must be between 0.0 and 1.0.", exception.getMessage());
-    }
-
-    // ==========================================
-    // Tests for calculateOrderTotal()
-    // ==========================================
-
-    @Test
-    void testCalculateOrderTotal_SuccessNoDiscount() {
-        manager.addBookToInventory(testBook);
-        double total = manager.calculateOrderTotal("Harry Potter", 2);
-        assertEquals(40.0, total, "Total should be base price * quantity");
+        assertEquals("Discount rate must be between 0.0 and 1.0.", ex.getMessage());
     }
 
     @Test
-    void testCalculateOrderTotal_SuccessWithDiscount() {
-        manager.addBookToInventory(testBook);
-        manager.setDiscountRate(0.1); // Apply 10% discount
-        double total = manager.calculateOrderTotal("Harry Potter", 2);
-        assertEquals(36.0, total, "Total should include the 10% discount");
+    void testCalculateTotal_NoDiscount() {
+        orderManager.addBookToInventory(sampleBook);
+        double total = orderManager.calculateOrderTotal("Harry Potter", 2);
+        assertEquals(40.0, total);
     }
 
     @Test
-    void testCalculateOrderTotal_ZeroDiscount_ReturnsFullPrice() {
-        manager.addBookToInventory(testBook);
-        // Default discount is 0.0; this covers the false branch of if (discountRate > 0)
-        double total = manager.calculateOrderTotal("Harry Potter", 1);
-        assertEquals(20.0, total, "Total should be the full price when discount is 0");
+    void testCalculateTotal_WithDiscount() {
+        orderManager.addBookToInventory(sampleBook);
+        orderManager.setDiscountRate(0.1);
+        double total = orderManager.calculateOrderTotal("Harry Potter", 2);
+        assertEquals(36.0, total);
     }
 
     @Test
-    void testCalculateOrderTotal_NullTitle_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            manager.calculateOrderTotal(null, 1);
+    void testCalculateTotal_ZeroDiscount() {
+        orderManager.addBookToInventory(sampleBook);
+        double total = orderManager.calculateOrderTotal("Harry Potter", 1);
+        assertEquals(20.0, total);
+    }
+
+    @Test
+    void testCalculateTotal_NullTitle_ThrowsException() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            orderManager.calculateOrderTotal(null, 1);
         });
-        assertEquals("Book title cannot be null or empty.", exception.getMessage());
+        assertEquals("Book title cannot be null or empty.", ex.getMessage());
     }
 
     @Test
-    void testCalculateOrderTotal_EmptyTitle_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            manager.calculateOrderTotal("   ", 1);
+    void testCalculateTotal_EmptyTitle_ThrowsException() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            orderManager.calculateOrderTotal("   ", 1);
         });
-        assertEquals("Book title cannot be null or empty.", exception.getMessage());
+        assertEquals("Book title cannot be null or empty.", ex.getMessage());
     }
 
     @Test
-    void testCalculateOrderTotal_InvalidQuantity_ThrowsException() {
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () -> {
-            manager.calculateOrderTotal("Harry Potter", 0);
+    void testCalculateTotal_ZeroQuantity_ThrowsException() {
+        IllegalArgumentException ex = assertThrows(IllegalArgumentException.class, () -> {
+            orderManager.calculateOrderTotal("Harry Potter", 0);
         });
-        assertEquals("Quantity must be greater than zero.", exception.getMessage());
+        assertEquals("Quantity must be greater than zero.", ex.getMessage());
     }
 
     @Test
-    void testCalculateOrderTotal_BookNotFound_ThrowsException() {
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            manager.calculateOrderTotal("Unknown Book", 1);
+    void testCalculateTotal_BookNotFound_ThrowsException() {
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
+            orderManager.calculateOrderTotal("Unknown Book", 1);
         });
-        assertEquals("Book not found in inventory.", exception.getMessage());
+        assertEquals("Book not found in inventory.", ex.getMessage());
     }
 
     @Test
-    void testCalculateOrderTotal_InsufficientStock_ThrowsException() {
-        manager.addBookToInventory(testBook);
-        IllegalStateException exception = assertThrows(IllegalStateException.class, () -> {
-            manager.calculateOrderTotal("Harry Potter", 11); // Only 10 in stock
+    void testCalculateTotal_NotEnoughStock_ThrowsException() {
+        orderManager.addBookToInventory(sampleBook);
+        IllegalStateException ex = assertThrows(IllegalStateException.class, () -> {
+            orderManager.calculateOrderTotal("Harry Potter", 11);
         });
-        assertEquals("Insufficient stock available.", exception.getMessage());
+        assertEquals("Insufficient stock available.", ex.getMessage());
     }
 
-    // ==========================================
-    // Tests for processCheckout()
-    // ==========================================
-
     @Test
-    void testProcessCheckout_Success() {
-        manager.addBookToInventory(testBook);
-        boolean result = manager.processCheckout("Harry Potter", 2, true);
+    void testCheckout_Success() {
+        orderManager.addBookToInventory(sampleBook);
+        boolean result = orderManager.processCheckout("Harry Potter", 2, true);
         assertTrue(result);
-        assertEquals(8, testBook.getStock(), "Stock should be reduced by the ordered quantity");
+        assertEquals(8, sampleBook.getStock());
     }
 
     @Test
-    void testProcessCheckout_MultipleBooksInInventory() {
-        // Covers the loop checking a non-matching book and then finding the right one
+    void testCheckout_MultipleBooks() {
         Book secondBook = new Book("Lord of the Rings", 30.0, 5);
-        manager.addBookToInventory(testBook);
-        manager.addBookToInventory(secondBook);
+        orderManager.addBookToInventory(sampleBook);
+        orderManager.addBookToInventory(secondBook);
 
-        boolean result = manager.processCheckout("Lord of the Rings", 1, true);
+        boolean result = orderManager.processCheckout("Lord of the Rings", 1, true);
         assertTrue(result);
         assertEquals(4, secondBook.getStock());
     }
 
     @Test
-    void testProcessCheckout_NullTitle_ReturnsFalse() {
-        boolean result = manager.processCheckout(null, 1, false);
+    void testCheckout_NullTitle_ReturnsFalse() {
+        boolean result = orderManager.processCheckout(null, 1, false);
         assertFalse(result);
     }
 
     @Test
-    void testProcessCheckout_InvalidQuantity_ReturnsFalse() {
-        boolean result = manager.processCheckout("Harry Potter", -1, false);
+    void testCheckout_NegativeQuantity_ReturnsFalse() {
+        boolean result = orderManager.processCheckout("Harry Potter", -1, false);
         assertFalse(result);
     }
 
     @Test
-    void testProcessCheckout_BookNotFound_ThrowsException() {
-        manager.addBookToInventory(testBook);
+    void testCheckout_UnknownBook_ThrowsException() {
+        orderManager.addBookToInventory(sampleBook);
         assertThrows(IllegalStateException.class, () -> {
-            manager.processCheckout("Unknown Book", 1, true);
+            orderManager.processCheckout("Unknown Book", 1, true);
         });
     }
 
     @Test
-    void testProcessCheckout_InsufficientStock_ThrowsException() {
-        manager.addBookToInventory(testBook);
+    void testCheckout_NotEnoughStock_ThrowsException() {
+        orderManager.addBookToInventory(sampleBook);
         assertThrows(IllegalStateException.class, () -> {
-            manager.processCheckout("Harry Potter", 15, true);
+            orderManager.processCheckout("Harry Potter", 15, true);
         });
     }
 
     @Test
-    void testProcessCheckout_EmptyInventory_ThrowsException() {
+    void testCheckout_EmptyInventory_ThrowsException() {
         assertThrows(IllegalStateException.class, () -> {
-            manager.processCheckout("Harry Potter", 1, true);
+            orderManager.processCheckout("Harry Potter", 1, true);
         });
     }
 }
